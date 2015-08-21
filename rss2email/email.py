@@ -39,6 +39,7 @@ import ssl as _ssl
 import subprocess as _subprocess
 import sys as _sys
 import time as _time
+import re,os
 
 from . import LOG as _LOG
 from . import config as _config
@@ -176,6 +177,12 @@ def smtp_send(sender, recipient, message, config=None, section='DEFAULT'):
     smtp.send_message(message, sender, [recipient])
     smtp.quit()
 
+def get_password_emacs(machine, login, port, file_path):
+    s = "machine %s login %s port %s password ([^ ]*)\n" % (machine, login, port)
+    p = re.compile(s)
+    authinfo = os.popen("gpg2 -q --no-tty -d "+file_path).read()
+    return p.search(authinfo).group(1)
+
 def imap_send(message, config=None, section='DEFAULT'):
     if config is None:
         config = _config.CONFIG
@@ -190,7 +197,8 @@ def imap_send(message, config=None, section='DEFAULT'):
     try:
         if config.getboolean(section, 'imap-auth'):
             username = config.get(section, 'imap-username')
-            password = config.get(section, 'imap-password')
+            imappath = config.get(section, 'imap-password')
+            password = get_password_emacs(server,username,port,imappath)
             try:
                 if not ssl:
                     imap.starttls()
