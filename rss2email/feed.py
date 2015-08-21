@@ -736,6 +736,7 @@ class Feed (object):
                 '<!DOCTYPE html>',
                 '<html>',
                 '  <head>',
+                '    <meta charset="utf-8" />'
                 ]
             if self.use_css and self.css:
                 lines.extend([
